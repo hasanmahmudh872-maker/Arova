@@ -474,6 +474,7 @@
         <a href="#"><i class="fas fa-bell"></i> নোটিফিকেশন</a>
         <a href="https://wa.me/8801624739004" target="_blank"><i class="fab fa-whatsapp"></i> কাস্টমার কেয়ার</a>
         <a href="https://wa.me/8801865618111" target="_blank"><i class="fab fa-whatsapp"></i> সাপোর্ট</a>
+        <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> লগ আউট</a>
       </div>
     </div>
   </div>
@@ -593,8 +594,7 @@
   // Update current time
   function updateTime() {
     const now = new Date();
-    const timeElement = document.getElementById('current-time');
-    timeElement.textContent = now.toLocaleTimeString('bn-BD');
+    document.getElementById('current-time').textContent = now.toLocaleTimeString('bn-BD');
   }
   setInterval(updateTime, 1000);
   updateTime();
@@ -603,7 +603,6 @@
   function openProfileModal() {
     document.getElementById('profileModal').style.display = 'flex';
   }
-
   function closeProfileModal() {
     document.getElementById('profileModal').style.display = 'none';
   }
@@ -615,26 +614,29 @@
       closeProfileModal();
     }
   }
+</script>
 
-  // Sample user data - in a real app, this would come from your backend
-  const userData = {
-    name: "হাসান মাহমুদ ",
-    email: "hasanmahmudh872@gmail.com",
-    phone: "০১৬২৪৭৩৯০০৪",
-    address: "১৩৬১.সারুদিয়া,ডেমরা,ঢাকা",
-    dob: "২৫ জুন, ২০০৬",
-    joinDate: "১০ মার্চ, ২০২৫",
-    profilePic: "https://via.placeholder.com/120"
-  };
+<script type="module">
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { app, logout } from "./firebase.js";
+  const auth = getAuth(app);
 
-  // Populate profile data
-  document.getElementById('profilePicture').src = userData.profilePic;
-  document.getElementById('userName').textContent = userData.name;
-  document.getElementById('userEmail').textContent = userData.email;
-  document.getElementById('userPhone').textContent = userData.phone;
-  document.getElementById('userAddress').textContent = userData.address;
-  document.getElementById('userDob').textContent = userData.dob;
-  document.getElementById('joinDate').textContent = userData.joinDate;
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      document.getElementById("userName").textContent = user.displayName || "নাম নেই";
+      document.getElementById("userEmail").textContent = user.email;
+      document.getElementById("profilePicture").src = user.photoURL || "https://via.placeholder.com/120";
+    } else {
+      document.getElementById("userName").textContent = "Guest";
+      document.getElementById("userEmail").textContent = "Not logged in";
+      document.getElementById("profilePicture").src = "https://via.placeholder.com/120";
+    }
+  });
+// Logout button click
+document.getElementById("logoutBtn")?.addEventListener("click", (e) => {
+  e.preventDefault();   // লিঙ্ক রিফ্রেশ হওয়া বন্ধ করবে
+  logout();             // firebase.js এর logout() ফাংশন চালাবে
+});
 </script>
 </body>
-</html>
+    </html>

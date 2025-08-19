@@ -2,7 +2,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } 
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
+//  Firestore যোগ করুন
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 // Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyAlSpW1-twmd94Dtb-3urkLat56tcE3z2g",
@@ -16,7 +17,7 @@ const firebaseConfig = {
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);;
-
+export const db = getFirestore(app);
 // Sign Up function
 export function signUp(email, password) {
   createUserWithEmailAndPassword(auth, email, password)

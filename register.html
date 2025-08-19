@@ -1,17 +1,107 @@
-<form id="registerForm">
-  <input type="text" id="name" placeholder="নাম লিখুন" required>
-  <input type="email" id="email" placeholder="ইমেইল লিখুন" required>
-  <input type="password" id="password" placeholder="পাসওয়ার্ড লিখুন" required>
-  <button type="submit">রেজিস্টার</button>
-</form>
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>রেজিস্ট্রেশন</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      width: 100%;
+      max-width: 400px;
+      margin: 80px auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .link {
+      text-align: center;
+      margin-top: 15px;
+    }
+    .link a {
+      text-decoration: none;
+      color: #28a745;
+    }
+  </style>
+</head>
+<body>
 
-<script type="module">
-  import { signUp } from "./firebase.js";
+  <div class="container">
+    <h2>রেজিস্ট্রেশন</h2>
+    <form id="registerForm">
+      <input type="text" id="name" placeholder="নাম লিখুন" required>
+      <input type="email" id="email" placeholder="ইমেইল লিখুন" required>
+      <input type="password" id="password" placeholder="পাসওয়ার্ড লিখুন" required>
+      <button type="submit">রেজিস্টার</button>
+    </form>
+    <div class="link">
+      <p>আগেই একাউন্ট আছে? <a href="login.html">লগইন করুন</a></p>
+    </div>
+  </div>
 
-  document.getElementById("registerForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    signUp(email, password);
-  });
-</script>
+  <!-- Firebase রেজিস্ট্রেশন স্ক্রিপ্ট -->
+  <script type="module">
+    import { getAuth, createUserWithEmailAndPassword, updateProfile } 
+      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { app } from "./firebase.js"; 
+
+    const auth = getAuth(app);
+
+    document.getElementById("registerForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          // প্রোফাইল আপডেট (নাম + ছবি)
+          return updateProfile(userCredential.user, {
+            displayName: name,
+            photoURL: "https://via.placeholder.com/120"
+          });
+        })
+        .then(() => {
+          alert("✅ Registration successful!");
+          window.location.href = "index.html"; // সফল হলে হোমে রিডাইরেক্ট
+        })
+        .catch((error) => {
+          alert("❌ " + error.message);
+        });
+    });
+  </script>
+
+</body>
+</html>

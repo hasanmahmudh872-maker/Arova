@@ -59,10 +59,14 @@
 
   <div class="container">
     <h2>রেজিস্ট্রেশন</h2>
-    <form id="registerForm">
-      <input type="text" id="name" placeholder="নাম লিখুন" required>
-      <input type="email" id="email" placeholder="ইমেইল লিখুন" required>
-      <input type="password" id="password" placeholder="পাসওয়ার্ড লিখুন" required>
+  <form id="registerForm">
+  <input type="text" id="name" placeholder="নাম লিখুন" required>
+  <input type="email" id="email" placeholder="ইমেইল লিখুন" required>
+  <input type="password" id="password" placeholder="পাসওয়ার্ড লিখুন" required>
+  <input type="text" id="phone" placeholder="ফোন নাম্বার লিখুন" required>
+  <input type="text" id="address" placeholder="ঠিকানা লিখুন" required>
+  <input type="date" id="dob" required>
+
       <button type="submit">রেজিস্টার</button>
     </form>
     <div class="link">
@@ -72,36 +76,53 @@
 
   <!-- Firebase রেজিস্ট্রেশন স্ক্রিপ্ট -->
   <script type="module">
-    import { getAuth, createUserWithEmailAndPassword, updateProfile } 
-      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { app } from "./firebase.js"; 
+  import { getAuth, createUserWithEmailAndPassword, updateProfile } 
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { doc, setDoc, serverTimestamp } 
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const auth = getAuth(app);
+  import { app, db } from "./firebase.js";
 
-    document.getElementById("registerForm").addEventListener("submit", (e) => {
-      e.preventDefault();
+  const auth = getAuth(app);
 
-      const name = document.getElementById("name").value;
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+  document.getElementById("registerForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-      createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          // প্রোফাইল আপডেট (নাম + ছবি)
-          return updateProfile(userCredential.user, {
-            displayName: name,
-            photoURL: "https://via.placeholder.com/120"
-          });
-        })
-        .then(() => {
-          alert("✅ Registration successful!");
-          window.location.href = "index.html"; // সফল হলে হোমে রিডাইরেক্ট
-        })
-        .catch((error) => {
-          alert("❌ " + error.message);
-        });
-    });
-  </script>
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const phone = document.getElementById("phone").value.trim();
+    const address = document.getElementById("address").value.trim();
+    const dob = document.getElementById("dob").value; // YYYY-MM-DD
+
+    try {
+      // 1) ইউজার তৈরি
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // 2) Auth প্রোফাইল আপডেট (শুধু displayName/photoURL)
+      await updateProfile(user, {
+        displayName: name,
+        photoURL: "https://via.placeholder.com/120"
+      });
+
+      // 3) Firestore-এ ইউজারের ডিটেইলস সেভ
+      await setDoc(doc(db, "users", user.uid), {
+        name,
+        email,
+        phone,
+        address,
+        dob,                 // স্ট্রিং হিসেবেই রাখছি (ইচ্ছে করলে Timestamp-ও রাখতে পারেন)
+        createdAt: serverTimestamp()
+      });
+
+      alert("✅ Registration successful!");
+      window.location.href = "index.html";
+    } catch (err) {
+      alert("❌ " + err.message);
+    }
+  });
+</script>
 
 </body>
 </html>

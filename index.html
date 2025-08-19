@@ -617,26 +617,62 @@
 </script>
 
 <script type="module">
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { app, logout } from "./firebase.js";
+  import { getAuth, onAuthStateChanged } 
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { doc, getDoc } 
+    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { app, db, logout } from "./firebase.js";
+
   const auth = getAuth(app);
 
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      document.getElementById("userName").textContent = user.displayName || "নাম নেই";
-      document.getElementById("userEmail").textContent = user.email;
-      document.getElementById("profilePicture").src = user.photoURL || "https://via.placeholder.com/120";
-    } else {
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      // লগইন না থাকলে ডিফল্ট দেখান বা ইচ্ছে করলে login.html এ পাঠান
       document.getElementById("userName").textContent = "Guest";
       document.getElementById("userEmail").textContent = "Not logged in";
       document.getElementById("profilePicture").src = "https://via.placeholder.com/120";
+
+      // চাইলে redirect:
+      // window.location.href = "login.html";
+      return;
+    }
+
+    // Auth থেকে বেসিক
+    document.getElementById("userName").textContent = user.displayName || "নাম নেই";
+    document.getElementById("userEmail").textContent = user.email || "—";
+    document.getElementById("profilePicture").src = user.photoURL || "https://via.placeholder.com/120";
+
+    try {
+      // ✅ Firestore থেকে প্রোফাইল ডেটা
+      const snap = await getDoc(doc(db, "users", user.uid));
+      if (snap.exists()) {
+        const data = snap.data();
+        document.getElementById("userPhone").textContent   = data.phone   || "—";
+        document.getElementById("userAddress").textContent = data.address || "—";
+        document.getElementById("userDob").textContent     = data.dob     || "—";
+
+        // createdAt থাকলে সুন্দরভাবে দেখান
+        const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : null;
+        document.getElementById("joinDate").textContent = createdAt 
+          ? createdAt.toLocaleDateString("bn-BD")
+          : "—";
+      } else {
+        // ডকুমেন্ট না থাকলে fallback
+        document.getElementById("userPhone").textContent = "—";
+        document.getElementById("userAddress").textContent = "—";
+        document.getElementById("userDob").textContent = "—";
+        document.getElementById("joinDate").textContent = "—";
+      }
+    } catch (e) {
+      console.error(e);
     }
   });
-// Logout button click
-document.getElementById("logoutBtn")?.addEventListener("click", (e) => {
-  e.preventDefault();   // লিঙ্ক রিফ্রেশ হওয়া বন্ধ করবে
-  logout();             // firebase.js এর logout() ফাংশন চালাবে
-});
+
+  // Logout
+  document.getElementById("logoutBtn")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    logout();
+  });
 </script>
 </body>
-    </html>
+  </html>
